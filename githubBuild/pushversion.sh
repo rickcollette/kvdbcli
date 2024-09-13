@@ -25,10 +25,21 @@ function GetVersion() {
 
 # Git functions
 function GitFunctions() {
+    # Stage your changes, commit with the version, tag, and push
     git add .
-    git commit -m"Preparing for ${AppVersion} release"
+    git commit -m "Preparing for ${AppVersion} release"
+    
+    # Create a tag for the version
     git tag ${AppVersion}
+    
+    # Push both the commit to the branch and the tag to the remote repository
+    git push origin main
     git push origin ${AppVersion}
+
+    # Fetch the tags back to your local environment to ensure everything is in sync
+    git fetch --tags
+
+    # Confirm the version was pushed and is available
     go list -m github.com/rickcollette/kvdbcli@${AppVersion}
 }
 
