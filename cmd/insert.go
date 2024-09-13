@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/rickcollette/kayveedb"
 )
 
 var (
@@ -22,13 +20,10 @@ var insertCmd = &cobra.Command{
 			log.Fatalf("Failed to load B-tree: %v", err)
 		}
 
-		encryptionKey := []byte("32-byte-long-encryption-key")
-		nonce := []byte("24-byte-nonce")
-		err = btree.Insert(key, []byte(value), encryptionKey, nonce)
-		if err != nil {
-			log.Fatalf("Failed to insert key-value: %v", err)
+		// Use helper function to insert the key
+		if err := insertKey(btree, key, value); err != nil {
+			log.Fatalf("Error inserting key: %v", err)
 		}
-		fmt.Printf("Inserted key: %s\n", key)
 	},
 }
 

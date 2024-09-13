@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/rickcollette/kvdbdbcli/cmd"
+	"github.com/rickcollette/kvdbcli/cmd"
 )
 
 func main() {

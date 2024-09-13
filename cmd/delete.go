@@ -1,32 +1,33 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
-	"kayveedb"
 )
 
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete a key-value pair from KayveeDB",
 	Run: func(cmd *cobra.Command, args []string) {
+		// Load the B-tree using the helper function
 		btree, err := loadBTree()
 		if err != nil {
 			log.Fatalf("Failed to load B-tree: %v", err)
 		}
 
-		err = btree.Delete(key)
+		// Use the deleteKey helper function for deletion
+		err = deleteKey(btree, key)
 		if err != nil {
-			log.Fatalf("Failed to delete key: %v", err)
+			log.Fatalf("Error deleting key %s: %v", key, err)
 		}
-		fmt.Printf("Deleted key: %s\n", key)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(deleteCmd)
+	// Set up the flag for the key to delete
 	deleteCmd.Flags().StringVarP(&key, "key", "k", "", "Key to delete")
+	// Mark the key flag as required
 	deleteCmd.MarkFlagRequired("key")
 }

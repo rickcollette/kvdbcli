@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
-	"kayveedb"
 )
 
 var updateCmd = &cobra.Command{
@@ -17,13 +15,10 @@ var updateCmd = &cobra.Command{
 			log.Fatalf("Failed to load B-tree: %v", err)
 		}
 
-		encryptionKey := []byte("32-byte-long-encryption-key")
-		nonce := []byte("24-byte-nonce")
-		err = btree.Update(key, []byte(value), encryptionKey, nonce)
-		if err != nil {
-			log.Fatalf("Failed to update key-value: %v", err)
+		// Use helper function to update the key
+		if err := updateKey(btree, key, value); err != nil {
+			log.Fatalf("Error updating key: %v", err)
 		}
-		fmt.Printf("Updated key: %s\n", key)
 	},
 }
 

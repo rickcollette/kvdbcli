@@ -3,7 +3,7 @@ module github.com/rickcollette/kvdbcli
 go 1.22.4
 
 require (
-	github.com/rickcollette/kayveedb v1.0.1
+	github.com/rickcollette/kayveedb v1.0.2
 	github.com/spf13/cobra v1.8.1
 )
 

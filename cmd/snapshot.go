@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
-	"kayveedb"
 )
 
 var snapshotCmd = &cobra.Command{
@@ -17,11 +15,10 @@ var snapshotCmd = &cobra.Command{
 			log.Fatalf("Failed to load B-tree: %v", err)
 		}
 
-		err = btree.Snapshot()
-		if err != nil {
-			log.Fatalf("Failed to create snapshot: %v", err)
+		// Use helper function to take a snapshot
+		if err := snapshotBTree(btree); err != nil {
+			log.Fatalf("Failed to take snapshot: %v", err)
 		}
-		fmt.Println("Snapshot created successfully")
 	},
 }
 

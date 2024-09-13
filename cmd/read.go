@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/spf13/cobra"
-	"kayveedb"
 )
 
 var readCmd = &cobra.Command{
@@ -17,13 +15,12 @@ var readCmd = &cobra.Command{
 			log.Fatalf("Failed to load B-tree: %v", err)
 		}
 
-		encryptionKey := []byte("32-byte-long-encryption-key")
-		nonce := []byte("24-byte-nonce")
-		value, err := btree.Read(key, encryptionKey, nonce)
+		// Use helper function to read the key
+		val, err := readKey(btree, key)
 		if err != nil {
-			log.Fatalf("Failed to read key: %v", err)
+			log.Fatalf("Error reading key: %v", err)
 		}
-		fmt.Printf("Value for key %s: %s\n", key, string(value))
+		log.Printf("Value for key '%s': %s\n", key, val)
 	},
 }
 

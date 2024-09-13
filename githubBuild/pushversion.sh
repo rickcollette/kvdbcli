@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## Vars
-VERSION_FILE="version.go"
+VERSION_FILE="cmd/version.go"
 
 ## Get the current version 
 function GetVersion() {
