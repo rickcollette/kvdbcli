@@ -25,7 +25,7 @@ var deleteCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(deleteCmd)
+	RootCmd.AddCommand(deleteCmd)
 	// Set up the flag for the key to delete
 	deleteCmd.Flags().StringVarP(&key, "key", "k", "", "Key to delete")
 	// Mark the key flag as required

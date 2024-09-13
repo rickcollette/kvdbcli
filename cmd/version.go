@@ -9,7 +9,7 @@ import (
 
 const Version string = "v1.0.5"
 
-var versionCmd = &cobra.Command{
+var VersionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Display the version of kvdbcli",
 	Run: func(cmd *cobra.Command, args []string) {
@@ -18,5 +18,5 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(versionCmd)
+	RootCmd.AddCommand(VersionCmd)
 }

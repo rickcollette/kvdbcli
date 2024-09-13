@@ -19,22 +19,25 @@ var (
 	CacheSize     = 100 // Set a default cache size for B-tree nodes
 )
 
-// LoadConfig loads the config file and environment variables.
+// LoadConfig loads the config file and environment variables using Viper
 func LoadConfig() {
-	viper.SetConfigName("kayveedb")
-	viper.AddConfigPath("/etc/kayveedb/")
-	viper.AddConfigPath("$HOME/.kayveedb/")
-	viper.AddConfigPath(".")
+	viper.SetConfigName("kayveedb")           // Config file name without extension
+	viper.AddConfigPath("/etc/kayveedb/")     // Look for config in /etc
+	viper.AddConfigPath("$HOME/.kayveedb/")   // Look for config in the home directory
+	viper.AddConfigPath(".")                  // Look for config in the current directory
 
+	// Bind environment variables
 	viper.BindEnv("HMAC_KEY")
 	viper.BindEnv("ENCRYPTION_KEY")
 	viper.BindEnv("NONCE")
 
+	// Try to read the config file
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	} else {
+		fmt.Println("No config file found. Using default values or environment variables.")
 	}
 }
-
 // InitializeKeys initializes the keys from environment variables or errors out.
 func InitializeKeys() error {
 	HmacKey = []byte(viper.GetString("HMAC_KEY"))

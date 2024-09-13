@@ -8,16 +8,18 @@ import (
 
 	"github.com/chzyer/readline"
 	"github.com/rickcollette/kvdbcli/cmd"
+	"github.com/spf13/viper"
 )
 
 func replMode() {
-	rl, err := readline.New("> ")
+	rl, err := readline.New("kvdbcli> ")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer rl.Close()
 
-	fmt.Println("Entering interactive mode. Type 'quit' or 'exit' to leave.")
+	fmt.Println("Entering interactive mode. Type 'quit', '.q', or 'exit' to leave.")
+	fmt.Println("For help, type '.?', or 'help'")
 
 	for {
 		line, err := rl.Readline()
@@ -26,17 +28,28 @@ func replMode() {
 		}
 
 		command := strings.TrimSpace(line)
+		upperCommand := strings.ToUpper(command)
 
-		// Handle exit command
-		if command == "exit" || command == "quit" {
+		if upperCommand == "EXIT" || upperCommand == "QUIT" || upperCommand == ".Q" {
 			break
 		}
+		if upperCommand == ".?" || upperCommand == "HELP" {
+			cmd.RootCmd.Help() // Call Cobra's Help function
+			continue
+		}
+		if strings.HasPrefix(upperCommand, "SET ") {
+			setCmd := strings.TrimPrefix(upperCommand, "SET ")
+			cmd.SetCmd.Run(nil, []string{setCmd}) // Call the set command using Cobra
+			continue
+		} else if upperCommand == "SET" {
+			cmd.SetCmd.Run(nil, []string{}) // Show usage if no arguments provided
+			continue
+		}
 
-		// Handle REPL commands
 		args := strings.Split(command, " ")
-		switch args[0] {
+		switch strings.ToLower(args[0]) {
 		case "version":
-			cmd.Execute() // You could also create a handler if needed
+			cmd.VersionCmd.Run(nil, nil)
 		case "insert":
 			if len(args) < 3 {
 				fmt.Println("Usage: insert <key> <value>")
@@ -126,6 +139,11 @@ func snapshotInteractive() {
 }
 
 func main() {
+	// Load any configuration and set defaults
+	viper.SetDefault("HMAC", "default-hmac-key")
+	viper.SetDefault("ENCRYPTION", "default-encryption-key")
+	viper.SetDefault("NONCE", "default-nonce")
+
 	if len(os.Args) == 1 {
 		// No arguments passed, enter interactive mode
 		replMode()

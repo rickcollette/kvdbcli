@@ -12,7 +12,7 @@ VERSION_MINOR := $(word 2, $(subst ., ,$(CURRENT_VERSION)))
 VERSION_PATCH := $(word 3, $(subst ., ,$(CURRENT_VERSION)))
 
 # Default target
-all: build
+all: build build-genkey
 
 # Build the main application
 build: 

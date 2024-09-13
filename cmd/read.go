@@ -25,7 +25,7 @@ var readCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(readCmd)
+	RootCmd.AddCommand(readCmd)
 	readCmd.Flags().StringVarP(&key, "key", "k", "", "Key to read")
 	readCmd.MarkFlagRequired("key")
 }

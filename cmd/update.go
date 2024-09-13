@@ -23,7 +23,7 @@ var updateCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(updateCmd)
+	RootCmd.AddCommand(updateCmd)
 	updateCmd.Flags().StringVarP(&key, "key", "k", "", "Key to update")
 	updateCmd.Flags().StringVarP(&value, "value", "v", "", "New value to update")
 	updateCmd.MarkFlagRequired("key")

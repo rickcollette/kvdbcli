@@ -28,7 +28,7 @@ var insertCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(insertCmd)
+	RootCmd.AddCommand(insertCmd)
 	insertCmd.Flags().StringVarP(&key, "key", "k", "", "Key to insert")
 	insertCmd.Flags().StringVarP(&value, "value", "v", "", "Value to insert")
 	insertCmd.MarkFlagRequired("key")
