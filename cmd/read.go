@@ -10,13 +10,13 @@ var readCmd = &cobra.Command{
 	Use:   "read",
 	Short: "Read a value by key from KayveeDB",
 	Run: func(cmd *cobra.Command, args []string) {
-		btree, err := loadBTree()
+		btree, err := LoadBtree()
 		if err != nil {
 			log.Fatalf("Failed to load B-tree: %v", err)
 		}
 
 		// Use helper function to read the key
-		val, err := readKey(btree, key)
+		val, err := ReadKey(btree, key)
 		if err != nil {
 			log.Fatalf("Error reading key: %v", err)
 		}

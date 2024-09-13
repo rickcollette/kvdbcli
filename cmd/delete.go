@@ -11,13 +11,13 @@ var deleteCmd = &cobra.Command{
 	Short: "Delete a key-value pair from KayveeDB",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Load the B-tree using the helper function
-		btree, err := loadBTree()
+		btree, err := LoadBtree()
 		if err != nil {
 			log.Fatalf("Failed to load B-tree: %v", err)
 		}
 
 		// Use the deleteKey helper function for deletion
-		err = deleteKey(btree, key)
+		err = DeleteKey(btree, key)
 		if err != nil {
 			log.Fatalf("Error deleting key %s: %v", key, err)
 		}

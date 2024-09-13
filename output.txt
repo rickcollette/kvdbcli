@@ -1,0 +1,602 @@
+./tools/kvdbgenkey/main.go:
+
+```go
+package main
+
+import (
+	"crypto/rand"
+	"fmt"
+	"time"
+)
+
+func generateRandomBytes(length int) ([]byte, error) {
+	time.Sleep(50 * time.Millisecond) 
+	key := make([]byte, length)
+	_, err := rand.Read(key)
+	if err != nil {
+		return nil, err
+	}
+	return key, nil
+}
+
+func main() {
+
+	// generate each key. We pause for a few seconds to ensure slightly more randomness
+
+	hmacKey, _ := generateRandomBytes(24 + int(time.Now().UnixNano()%8))       // Generates a 32-byte HMAC key
+	encryptionKey, _ := generateRandomBytes(24 + int(time.Now().UnixNano()%8)) // Generates a 32-byte encryption key
+	nonce, _ := generateRandomBytes(24 + int(time.Now().UnixNano()%8)) // Small random variance
+
+	fmt.Printf("Keys for KayVeeDB:\n------------------\nHMAC Key: %x\nEncryption Key: %x\nNonce: %x\n", hmacKey, encryptionKey, nonce)
+}
+
+```
+-----
+./cmd/version.go:
+
+```go
+package cmd
+
+import (
+	"fmt"
+
+	"github.com/rickcollette/kayveedb"
+	"github.com/spf13/cobra"
+)
+
+const Version string = "v1.0.3"
+
+var versionCmd = &cobra.Command{
+	Use:   "version",
+	Short: "Display the version of kvdbcli",
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("kvdbcli version: %s\nkayveedb version: %s\n", Version, kayveedb.ShowVersion())
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(versionCmd)
+}
+
+```
+-----
+./cmd/update.go:
+
+```go
+package cmd
+
+import (
+	"log"
+
+	"github.com/spf13/cobra"
+)
+
+var updateCmd = &cobra.Command{
+	Use:   "update",
+	Short: "Update a value by key in KayveeDB",
+	Run: func(cmd *cobra.Command, args []string) {
+		btree, err := LoadBtree()
+		if err != nil {
+			log.Fatalf("Failed to load B-tree: %v", err)
+		}
+
+		// Use helper function to update the key
+		if err := UpdateKey(btree, key, value); err != nil {
+			log.Fatalf("Error updating key: %v", err)
+		}
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(updateCmd)
+	updateCmd.Flags().StringVarP(&key, "key", "k", "", "Key to update")
+	updateCmd.Flags().StringVarP(&value, "value", "v", "", "New value to update")
+	updateCmd.MarkFlagRequired("key")
+	updateCmd.MarkFlagRequired("value")
+}
+
+```
+-----
+./cmd/read.go:
+
+```go
+package cmd
+
+import (
+	"log"
+
+	"github.com/spf13/cobra"
+)
+
+var readCmd = &cobra.Command{
+	Use:   "read",
+	Short: "Read a value by key from KayveeDB",
+	Run: func(cmd *cobra.Command, args []string) {
+		btree, err := LoadBtree()
+		if err != nil {
+			log.Fatalf("Failed to load B-tree: %v", err)
+		}
+
+		// Use helper function to read the key
+		val, err := ReadKey(btree, key)
+		if err != nil {
+			log.Fatalf("Error reading key: %v", err)
+		}
+		log.Printf("Value for key '%s': %s\n", key, val)
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(readCmd)
+	readCmd.Flags().StringVarP(&key, "key", "k", "", "Key to read")
+	readCmd.MarkFlagRequired("key")
+}
+
+```
+-----
+./cmd/delete.go:
+
+```go
+package cmd
+
+import (
+	"log"
+
+	"github.com/spf13/cobra"
+)
+
+var deleteCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete a key-value pair from KayveeDB",
+	Run: func(cmd *cobra.Command, args []string) {
+		// Load the B-tree using the helper function
+		btree, err := LoadBtree()
+		if err != nil {
+			log.Fatalf("Failed to load B-tree: %v", err)
+		}
+
+		// Use the deleteKey helper function for deletion
+		err = DeleteKey(btree, key)
+		if err != nil {
+			log.Fatalf("Error deleting key %s: %v", key, err)
+		}
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(deleteCmd)
+	// Set up the flag for the key to delete
+	deleteCmd.Flags().StringVarP(&key, "key", "k", "", "Key to delete")
+	// Mark the key flag as required
+	deleteCmd.MarkFlagRequired("key")
+}
+
+```
+-----
+./cmd/load.go:
+
+```go
+package cmd
+
+import (
+	"log"
+
+	"github.com/spf13/cobra"
+)
+
+var loadCmd = &cobra.Command{
+	Use:   "load",
+	Short: "Load the KayveeDB from logs",
+	Run: func(cmd *cobra.Command, args []string) {
+		btree, err := LoadBtree()
+		if err != nil {
+			log.Fatalf("Failed to load B-tree: %v", err)
+		}
+		// Using the loaded B-tree or processing further as needed
+		if btree != nil {
+			log.Println("KayveeDB loaded from logs successfully")
+		}
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(loadCmd)
+}
+
+```
+-----
+./cmd/snapshot.go:
+
+```go
+package cmd
+
+import (
+	"log"
+
+	"github.com/spf13/cobra"
+)
+
+var snapshotCmd = &cobra.Command{
+	Use:   "snapshot",
+	Short: "Create a snapshot of the current KayveeDB state",
+	Run: func(cmd *cobra.Command, args []string) {
+		btree, err := LoadBtree()
+		if err != nil {
+			log.Fatalf("Failed to load B-tree: %v", err)
+		}
+
+		// Use helper function to take a snapshot
+		if err := SnapshotBtree(btree); err != nil {
+			log.Fatalf("Failed to take snapshot: %v", err)
+		}
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(snapshotCmd)
+}
+
+```
+-----
+./cmd/root.go:
+
+```go
+package cmd
+
+import (
+	"log"
+	"os"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+)
+
+var rootCmd = &cobra.Command{
+	Use:   "kayveedb",
+	Short: "KayveeDB CLI is a tool to interact with the KayveeDB B-tree encrypted key-value store",
+	Long: `KayveeDB CLI allows users to perform key-value operations like inserting, reading, updating, and deleting,
+along with managing snapshots and logs of the B-tree database.`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		LoadConfig()
+	},
+}
+
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+}
+
+func init() {
+	// Flags for snapshot and log path
+	rootCmd.PersistentFlags().StringVar(&Snapshot, "snapshot", "/path/to/snapshot", "Path to the snapshot file")
+	rootCmd.PersistentFlags().StringVar(&LogPath, "logpath", "/path/to/log", "Path to the log file")
+
+	// Bind flags to viper
+	viper.BindPFlag("snapshot", rootCmd.PersistentFlags().Lookup("snapshot"))
+	viper.BindPFlag("logpath", rootCmd.PersistentFlags().Lookup("logpath"))
+}
+
+```
+-----
+./cmd/helper.go:
+
+```go
+package cmd
+
+import (
+	"errors"
+	"fmt"
+	"log"
+	"github.com/spf13/viper"
+	"github.com/rickcollette/kayveedb"
+)
+
+var (
+	Snapshot      = "path/to/snapshot"
+	LogPath       = "path/to/log"
+	HmacKey       = []byte("32-byte-hmac-key")
+	EncryptionKey = []byte("32-byte-long-encryption-key")
+	Nonce         = []byte("24-byte-nonce")
+	KeySize       = 32  // XChaCha20 key size
+	NonceSize     = 24  // XChaCha20 nonce size
+	CacheSize     = 100 // Set a default cache size for B-tree nodes
+)
+
+// LoadConfig loads the config file and environment variables.
+func LoadConfig() {
+	viper.SetConfigName("kayveedb")
+	viper.AddConfigPath("/etc/kayveedb/")
+	viper.AddConfigPath("$HOME/.kayveedb/")
+	viper.AddConfigPath(".")
+
+	viper.BindEnv("HMAC_KEY")
+	viper.BindEnv("ENCRYPTION_KEY")
+	viper.BindEnv("NONCE")
+
+	if err := viper.ReadInConfig(); err == nil {
+		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	}
+}
+
+// InitializeKeys initializes the keys from environment variables or errors out.
+func InitializeKeys() error {
+	HmacKey = []byte(viper.GetString("HMAC_KEY"))
+	EncryptionKey = []byte(viper.GetString("ENCRYPTION_KEY"))
+	Nonce = []byte(viper.GetString("NONCE"))
+
+	if len(HmacKey) != KeySize || len(EncryptionKey) != KeySize || len(Nonce) != NonceSize {
+		return fmt.Errorf("invalid key lengths: hmacKey and encryptionKey must be %d bytes, nonce must be %d bytes", KeySize, NonceSize)
+	}
+	return nil
+}
+
+// ValidateEncryptionParams validates the encryption key and nonce.
+func ValidateEncryptionParams() error {
+	if len(EncryptionKey) != KeySize {
+		return fmt.Errorf("encryptionKey must be %d bytes long", KeySize)
+	}
+	if len(Nonce) != NonceSize {
+		return fmt.Errorf("nonce must be %d bytes long", NonceSize)
+	}
+	return nil
+}
+
+// LoadBtree loads the B-tree from the snapshot and logs.
+func LoadBtree() (*kayveedb.BTree, error) {
+	if err := ValidateEncryptionParams(); err != nil {
+		return nil, err
+	}
+	btree, err := kayveedb.NewBTree(3, Snapshot, LogPath, HmacKey, EncryptionKey, Nonce, CacheSize)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load B-tree: %v", err)
+	}
+	return btree, nil
+}
+
+// SnapshotBtree takes a snapshot of the current B-tree state.
+func SnapshotBtree(btree *kayveedb.BTree) error {
+	if err := btree.Snapshot(); err != nil {
+		return fmt.Errorf("failed to take snapshot: %v", err)
+	}
+	log.Println("Snapshot taken successfully")
+	return nil
+}
+
+// DeleteKey deletes a key from the B-tree.
+func DeleteKey(btree *kayveedb.BTree, key string) error {
+	if key == "" {
+		return errors.New("key cannot be empty")
+	}
+	if err := btree.Delete(nil, key); err != nil {
+		return fmt.Errorf("failed to delete key %s: %v", key, err)
+	}
+	log.Printf("Deleted key: %s\n", key)
+	return nil
+}
+
+// InsertKey inserts a new key-value pair into the B-tree.
+func InsertKey(btree *kayveedb.BTree, key, value string) error {
+	if key == "" || value == "" {
+		return errors.New("key and value cannot be empty")
+	}
+	encValue := []byte(value)
+	if err := btree.Insert(key, encValue, EncryptionKey, Nonce); err != nil {
+		return fmt.Errorf("failed to insert key %s: %v", key, err)
+	}
+	log.Printf("Inserted key: %s\n", key)
+	return nil
+}
+
+// UpdateKey updates an existing key-value pair in the B-tree.
+func UpdateKey(btree *kayveedb.BTree, key, value string) error {
+	if key == "" || value == "" {
+		return errors.New("key and value cannot be empty")
+	}
+	encValue := []byte(value)
+	if err := btree.Update(key, encValue, EncryptionKey, Nonce); err != nil {
+		return fmt.Errorf("failed to update key %s: %v", key, err)
+	}
+	log.Printf("Updated key: %s\n", key)
+	return nil
+}
+
+// ReadKey reads the value of a key from the B-tree.
+func ReadKey(btree *kayveedb.BTree, key string) (string, error) {
+	if key == "" {
+		return "", errors.New("key cannot be empty")
+	}
+	value, err := btree.Read(key, EncryptionKey, Nonce)
+	if err != nil {
+		return "", fmt.Errorf("failed to read key %s: %v", key, err)
+	}
+	return string(value), nil
+}
+
+```
+-----
+./cmd/insert.go:
+
+```go
+package cmd
+
+import (
+	"log"
+
+	"github.com/spf13/cobra"
+)
+
+var (
+	key   string
+	value string
+)
+
+var insertCmd = &cobra.Command{
+	Use:   "insert",
+	Short: "Insert a key-value pair into KayveeDB",
+	Run: func(cmd *cobra.Command, args []string) {
+		btree, err := LoadBtree()
+		if err != nil {
+			log.Fatalf("Failed to load B-tree: %v", err)
+		}
+
+		// Use helper function to insert the key
+		if err := InsertKey(btree, key, value); err != nil {
+			log.Fatalf("Error inserting key: %v", err)
+		}
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(insertCmd)
+	insertCmd.Flags().StringVarP(&key, "key", "k", "", "Key to insert")
+	insertCmd.Flags().StringVarP(&value, "value", "v", "", "Value to insert")
+	insertCmd.MarkFlagRequired("key")
+	insertCmd.MarkFlagRequired("value")
+}
+
+```
+-----
+./main.go:
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"os"
+	"strings"
+
+	"github.com/chzyer/readline"
+	"github.com/rickcollette/kvdbcli/cmd"
+)
+
+func replMode() {
+	rl, err := readline.New("> ")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rl.Close()
+
+	fmt.Println("Entering interactive mode. Type 'quit' or 'exit' to leave.")
+
+	for {
+		line, err := rl.Readline()
+		if err != nil { // Handle errors or EOF
+			break
+		}
+
+		command := strings.TrimSpace(line)
+
+		// Handle exit command
+		if command == "exit" || command == "quit" {
+			break
+		}
+
+		// Handle REPL commands
+		args := strings.Split(command, " ")
+		switch args[0] {
+		case "version":
+			cmd.Execute() // You could also create a handler if needed
+		case "insert":
+			if len(args) < 3 {
+				fmt.Println("Usage: insert <key> <value>")
+			} else {
+				insertInteractive(args[1], args[2])
+			}
+		case "read":
+			if len(args) < 2 {
+				fmt.Println("Usage: read <key>")
+			} else {
+				readInteractive(args[1])
+			}
+		case "update":
+			if len(args) < 3 {
+				fmt.Println("Usage: update <key> <new_value>")
+			} else {
+				updateInteractive(args[1], args[2])
+			}
+		case "delete":
+			if len(args) < 2 {
+				fmt.Println("Usage: delete <key>")
+			} else {
+				deleteInteractive(args[1])
+			}
+		case "snapshot":
+			snapshotInteractive()
+		default:
+			fmt.Printf("Unknown command: %s\n", command)
+		}
+	}
+}
+
+func insertInteractive(key, value string) {
+	btree, err := cmd.LoadBtree()
+	if err != nil {
+		log.Fatalf("Failed to load B-tree: %v", err)
+	}
+	if err := cmd.InsertKey(btree, key, value); err != nil {
+		log.Fatalf("Error inserting key: %v", err)
+	}
+	fmt.Printf("Inserted key: %s\n", key)
+}
+
+func readInteractive(key string) {
+	btree, err := cmd.LoadBtree()
+	if err != nil {
+		log.Fatalf("Failed to load B-tree: %v", err)
+	}
+	val, err := cmd.ReadKey(btree, key)
+	if err != nil {
+		log.Fatalf("Error reading key: %v", err)
+	}
+	fmt.Printf("Value for key '%s': %s\n", key, val)
+}
+
+func updateInteractive(key, value string) {
+	btree, err := cmd.LoadBtree()
+	if err != nil {
+		log.Fatalf("Failed to load B-tree: %v", err)
+	}
+	if err := cmd.UpdateKey(btree, key, value); err != nil {
+		log.Fatalf("Error updating key: %v", err)
+	}
+	fmt.Printf("Updated key: %s\n", key)
+}
+
+func deleteInteractive(key string) {
+	btree, err := cmd.LoadBtree()
+	if err != nil {
+		log.Fatalf("Failed to load B-tree: %v", err)
+	}
+	if err := cmd.DeleteKey(btree, key); err != nil {
+		log.Fatalf("Error deleting key: %v", err)
+	}
+	fmt.Printf("Deleted key: %s\n", key)
+}
+
+func snapshotInteractive() {
+	btree, err := cmd.LoadBtree()
+	if err != nil {
+		log.Fatalf("Failed to load B-tree: %v", err)
+	}
+	if err := cmd.SnapshotBtree(btree); err != nil {
+		log.Fatalf("Error taking snapshot: %v", err)
+	}
+	fmt.Println("Snapshot taken.")
+}
+
+func main() {
+	if len(os.Args) == 1 {
+		// No arguments passed, enter interactive mode
+		replMode()
+	} else {
+		// Arguments are passed, use the existing CLI method
+		cmd.Execute()
+	}
+}
+
+```
+-----

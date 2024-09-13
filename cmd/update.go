@@ -10,13 +10,13 @@ var updateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "Update a value by key in KayveeDB",
 	Run: func(cmd *cobra.Command, args []string) {
-		btree, err := loadBTree()
+		btree, err := LoadBtree()
 		if err != nil {
 			log.Fatalf("Failed to load B-tree: %v", err)
 		}
 
 		// Use helper function to update the key
-		if err := updateKey(btree, key, value); err != nil {
+		if err := UpdateKey(btree, key, value); err != nil {
 			log.Fatalf("Error updating key: %v", err)
 		}
 	},

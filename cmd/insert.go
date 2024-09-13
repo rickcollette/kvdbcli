@@ -15,13 +15,13 @@ var insertCmd = &cobra.Command{
 	Use:   "insert",
 	Short: "Insert a key-value pair into KayveeDB",
 	Run: func(cmd *cobra.Command, args []string) {
-		btree, err := loadBTree()
+		btree, err := LoadBtree()
 		if err != nil {
 			log.Fatalf("Failed to load B-tree: %v", err)
 		}
 
 		// Use helper function to insert the key
-		if err := insertKey(btree, key, value); err != nil {
+		if err := InsertKey(btree, key, value); err != nil {
 			log.Fatalf("Error inserting key: %v", err)
 		}
 	},
