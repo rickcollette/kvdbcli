@@ -21,7 +21,7 @@ function GitFunctions() {
     git commit -m"Preparing for ${AppVersion} release"
     git tag ${AppVersion}
     git push origin ${AppVersion}
-    go list -m github.com/rickcollette/kayveedb@${AppVersion}
+    go list -m github.com/rickcollette/kvdbcli@${AppVersion}
 }
 
 
